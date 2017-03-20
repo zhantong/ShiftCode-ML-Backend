@@ -26,6 +26,7 @@ class CleanData():
         samples_per_unit = data['barcode']['samplesPerUnit']
 
         overlap_situation = data['overlapSituation']
+        is_random=data['isRandom']
         contents = list(
             chunks(data['barcode']['content'][0], samples_per_unit))
         real_points = list(
@@ -37,9 +38,15 @@ class CleanData():
         for sample_points, content in zip(real_points, contents):
             point = sample_points[0]
             content.extend([bar_1[point[1]], bar_2[point[1]]])
+            content.insert(0,overlap_situation)
+            content.insert(0,1 if is_random else 0)
+            content.insert(0,index)
         self.points[index] = contents
-        if 'value' in data:
+        if 'truth' in data:
+            self.values[index] = data['truth']
+        if is_random and 'value' in data:
             self.values[index] = data['value']
+            print(index)
 
     def process_varybar(self, data):
         varybars = data['vary bar']
@@ -73,7 +80,7 @@ class CleanData():
 
 
 if __name__ == '__main__':
-    log_file_path = '1136.txt'
+    log_file_path = '2017-03-15 09-57-18.txt'
     barcode = CleanData()
     barcode.load_log(log_file_path)
     barcode.dump_to_file()

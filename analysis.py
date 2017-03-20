@@ -70,10 +70,40 @@ def run(input_file_path):
         print(metrics.confusion_matrix(expected, predicted))
         print('-' * 40)
 
+def run2(input_file_path):
+    dataset = np.loadtxt(
+        input_file_path, delimiter=',')
+    print(dataset.shape)
+    META=dataset[:,:3]
+    X = dataset[:, 3:10]
+    y = dataset[:, 10]
+    # print(X)
+    # print(y)
+    X = preprocessing.normalize(X)
+    # sc=preprocessing.StandardScaler()
+    # print(X)
+    # X = preprocessing.scale(X)
+    print('file: ', basename(input_file_path))
+    print('model: ', 'Random Forest')
+    print('*' * 40)
+    X_train=X[META[:,1]==1]
+    X_test = X[META[:, 1] == 0]
+    y_train = y[META[:, 1] == 1]
+    y_test = y[META[:, 1] == 0]
+    print('total_num: {}'.format(len(X)))
+    print('train_num: {}, test_num: {}'.format(len(X_train), len(X_test)))
+    model = RandomForestClassifier()
+    model.fit(X_train, y_train)
+    predicted = model.predict(X_test)
+    expected = y_test
+    print(metrics.classification_report(expected, predicted))
+    print(metrics.confusion_matrix(expected, predicted))
+    print('-' * 40)
+
 
 if __name__ == '__main__':
     files = [
         'data_with_value.txt'
     ]
     for file_path in files:
-        run(file_path)
+        run2(file_path)
