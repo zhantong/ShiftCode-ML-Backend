@@ -1,12 +1,17 @@
 import numpy as np
 from sklearn import preprocessing
-from sklearn import metrics
 from sklearn.ensemble import RandomForestClassifier
+import json
 from os.path import basename
+from sklearn import metrics
 
 
-class Analysis:
-    def run(self, input_file_path, feature_start_index, split_index):
+def chunks(l, n):
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+class Learning:
+    def run(this,input_file_path, feature_start_index, split_index):
         dataset = np.loadtxt(input_file_path, delimiter=',')
         print('file: ', basename(input_file_path))
         print('loaded data', dataset.shape)
@@ -31,41 +36,30 @@ class Analysis:
         print(metrics.classification_report(expected, predicted))
         print(metrics.confusion_matrix(expected, predicted))
 
-        print('8'*40)
-        print(dataset[:,0],dataset[:,2],predicted,expected)
-        a=list(dataset[:,0])
-        b=list(dataset[:,2])
-        c=list(predicted)
-        d=list(expected)
-        prev=a[0]
-        prev2=b[0]
-        count1=0
-        count2=0
-        memory={}
-        for item1,item2,item3,item4 in zip(a,b,c,d):
-            key=(item3,item4)
-            if key not in memory:
-                memory[key]=0
-            memory[key]+=1
-            if prev!=item1:
-                print(prev,prev2,count1,count2,count1/count2)
-                prev=item1
-                prev2=item2
-                count1=0
-                count2=0
+        with open('value.txt', 'w', encoding='utf-8') as f:
+            out = predicted.astype(int).tolist()
+            print(out)
+            f.write(json.dumps(out))
 
-                print(memory)
-                memory={}
-            else:
-                if item3!=item4:
-                    count1+=1
-                count2+=1
 
-        #np.savetxt('test.txt',np.array(X[:,0],dataset[:,2],predicted,expected),fmt='%d',delimiter='\t')
+    def format(this,input_file_path, output_file_path):
+        raptorQ_meta = {"commonOTI": 1375211619421, "schemeSpecificOTI": 16777473}
+        data = None
+        with open(input_file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            data = json.loads(content)
+        data = list(chunks(data, 2500))
+        out = {
+            'raptorQMeta': raptorQ_meta,
+            'values': data
+        }
+        with open(output_file_path, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(out))
 
 
 if __name__ == '__main__':
-    analysis = Analysis()
-    input_file_path = 'data_with_value.txt'
-    analysis.run(input_file_path, 3, 1)
-    # analysis.run(input_file_path, 4, 2)
+    input_file_path='data_with_value.txt'
+    learning=Learning()
+    learning.run(input_file_path, 3,1)
+
+    learning.format('value.txt', 'value_formatted.txt')

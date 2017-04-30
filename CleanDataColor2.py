@@ -8,7 +8,7 @@ def chunks(l, n):
 
 class CleanDataColor2(CleanData):
     def __init__(self):
-        super(CleanData, self).__init__()
+        super().__init__()
 
     def each_source(self, data):
         samples_per_unit = data['barcode']['samplesPerUnit']
@@ -24,6 +24,10 @@ class CleanDataColor2(CleanData):
         real_points = [list(chunks(points, 2))
                        for points in real_points]
         index = data['index']
+
+        # if is_random and index>100 and (overlap_situation==0 or overlap_situation==1):
+        #     return
+
         bar_1, bar_2 = self.process_varybar(data['varyBar'])
         length = int(len(contents) ** 0.5)
         result = []
@@ -32,39 +36,41 @@ class CleanDataColor2(CleanData):
             point = sample_points[0]
             current = []
             current.extend(content)
-            if i_1 >= length:
-                current.extend(contents[i_1 - length])
-            else:
-                current.extend([-1] * len(content))
-            if i_1 < length * (length - 1):
-                current.extend(contents[i_1 + length])
-            else:
-                current.extend([-1] * len(content))
-            if i_1 % length > 0:
-                current.extend(contents[i_1 - 1])
-            else:
-                current.extend([-1] * len(content))
-            if i_1 % length < length - 1:
-                current.extend(contents[i_1 + 1])
-            else:
-                current.extend([-1] * len(content))
+            if False:
+                if i_1 >= length:
+                    current.extend(contents[i_1 - length])
+                else:
+                    current.extend([-1] * len(content))
+                if i_1 < length * (length - 1):
+                    current.extend(contents[i_1 + length])
+                else:
+                    current.extend([-1] * len(content))
+                if i_1 % length > 0:
+                    current.extend(contents[i_1 - 1])
+                else:
+                    current.extend([-1] * len(content))
+                if i_1 % length < length - 1:
+                    current.extend(contents[i_1 + 1])
+                else:
+                    current.extend([-1] * len(content))
             current.extend(content_2)
-            if i_2 >= length:
-                current.extend(contents_2[i_2 - length])
-            else:
-                current.extend([-1] * len(content_2))
-            if i_2 < length * (length - 1):
-                current.extend(contents_2[i_2 + length])
-            else:
-                current.extend([-1] * len(content_2))
-            if i_2 % length > 0:
-                current.extend(contents_2[i_2 - 1])
-            else:
-                current.extend([-1] * len(content_2))
-            if i_2 % length < length - 1:
-                current.extend(contents_2[i_2 + 1])
-            else:
-                current.extend([-1] * len(content_2))
+            if False:
+                if i_2 >= length:
+                    current.extend(contents_2[i_2 - length])
+                else:
+                    current.extend([-1] * len(content_2))
+                if i_2 < length * (length - 1):
+                    current.extend(contents_2[i_2 + length])
+                else:
+                    current.extend([-1] * len(content_2))
+                if i_2 % length > 0:
+                    current.extend(contents_2[i_2 - 1])
+                else:
+                    current.extend([-1] * len(content_2))
+                if i_2 % length < length - 1:
+                    current.extend(contents_2[i_2 + 1])
+                else:
+                    current.extend([-1] * len(content_2))
             current.extend([bar_1[point[1]], bar_2[point[1]]])
             current.insert(0, overlap_situation)
             current.insert(0, 1 if is_random else 0)
@@ -94,7 +100,7 @@ class CleanDataColor2(CleanData):
 
 
 if __name__ == '__main__':
-    log_file_path = '2017-03-20 18-47-20.txt'
+    log_file_path = 'fs_1317.txt'
     barcode = CleanDataColor2()
     barcode.load_log(log_file_path)
     barcode.dump_to_file()
