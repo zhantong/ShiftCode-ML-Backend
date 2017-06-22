@@ -7,51 +7,53 @@ def chunks(l, n):
         yield l[i:i + n]
 
 
-class CleanData():
+class CleanData:
     def __init__(self):
         self.reg = re.compile(r'(.*?)\s\[(.*?)\]\s(.*?)\s(.*?)\s\[(.*?)\]\s\-\s(.*?)$')
         self.points = {}
         self.values = {}
 
-    def load_log(self, log_file_path):
+    def load_log(self, log_file_path, channels=[0]):
         with open(log_file_path, 'r', encoding='utf-8') as f:
             for line in f:
                 res = self.reg.findall(line)
                 log_type = res[0][4]
                 if log_type == 'processed':
                     log_data = json.loads(res[0][5])
-                    self.each_source(log_data)
+                    self.each_source(log_data, channels)
 
-    def each_source(self, data):
+    def each_source(self, data, channels):
+        index = data['image']['index']
+        if 'barcode' not in data:
+            print('passed image', index)
+            return
         samples_per_unit = data['barcode']['samplesPerUnit']
 
-        overlap_situation = data['overlapSituation']
-        is_random=data['isRandom']
-        contents = list(
-            chunks(data['barcode']['content'][0], samples_per_unit))
-        real_points = list(
-            chunks(data['barcode']['real'], samples_per_unit * 2))
-        real_points = [list(chunks(points, 2))
-                       for points in real_points]
-        index = data['index']
-        bar_1, bar_2 = self.process_varybar(data['varyBar'])
+        overlap_situation = data['barcode']['overlapSituation']
+        is_random = data['barcode']['isRandom']
+        contents = [list(chunks(data['barcode']['samplePixels'][channel], samples_per_unit)) for channel in channels]
+        contents = [sum(item, []) for item in zip(*contents)]
+        real_points = list(chunks(data['barcode']['realSampleCoordinates'], samples_per_unit * 2))
+        real_points = [list(chunks(points, 2)) for points in real_points]
+        packet = []
+        bar_1, bar_2 = self.process_varybar(data['barcode']['varyBars'])
         for sample_points, content in zip(real_points, contents):
+            current = []
+            current.extend(content)
             point = sample_points[0]
-            content.extend([bar_1[point[1]], bar_2[point[1]]])
-            content.insert(0,overlap_situation)
-            content.insert(0,1 if is_random else 0)
-            content.insert(0,index)
-        self.points[index] = contents
-        if 'truth' in data:
-            self.values[index] = data['truth']
-        if is_random and 'value' in data:
-            self.values[index] = data['value']
+            current.extend([bar_1[point[1]], bar_2[point[1]]])
+            current.insert(0, overlap_situation)
+            current.insert(0, 1 if is_random else 0)
+            current.insert(0, index)
+            packet.append(current)
+        self.points[index] = packet
+        if is_random and 'random' in data and 'truthValue' in data['random']:
+            self.values[index] = data['random']['truthValue']
             print(index)
 
     def process_varybar(self, data):
-        varybars = data['vary bar']
-        bar_1 = self.process_varybar_single(varybars[0])
-        bar_2 = self.process_varybar_single(varybars[1])
+        bar_1 = self.process_varybar_single(data[0])
+        bar_2 = self.process_varybar_single(data[1])
         return bar_1, bar_2
 
     def process_varybar_single(self, data):
@@ -63,9 +65,10 @@ class CleanData():
             varybar[keys[i]] = values[i]
         return varybar
 
-    def dump_to_file(self):
-        with open('data_with_value.txt', 'w', encoding='utf-8') as f_with_value \
-                , open('data_without_value.txt', 'w', encoding='utf-8') as f_without_value:
+    def dump_to_file(self, with_class_file_path='data_with_value.txt',
+                     without_class_file_path='data_without_value.txt'):
+        with open(with_class_file_path, 'w', encoding='utf-8') as f_with_value \
+                , open(without_class_file_path, 'w', encoding='utf-8') as f_without_value:
             for index, contents in sorted(self.points.items()):
                 if index in self.values:
                     values = self.values[index]
@@ -80,7 +83,10 @@ class CleanData():
 
 
 if __name__ == '__main__':
-    log_file_path = '2017-03-15 09-57-18.txt'
+    log_file_path = '2017-06-22 13-58-52.txt'
     barcode = CleanData()
-    barcode.load_log(log_file_path)
+    # Black White Barcode
+    barcode.load_log(log_file_path, [0])
+    # Color Barcode
+    # barcode.load_log(log_file_path,[1,2])
     barcode.dump_to_file()
