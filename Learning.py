@@ -1,4 +1,3 @@
-import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 import json
 
@@ -22,40 +21,52 @@ def find_most_common(input_list, list_of_list):
 
 
 class Learning:
-    def run(self, train_file_path, test_file_path, feature_start_index, output_file_path='predicted.txt'):
-        train_dataset = np.loadtxt(train_file_path, delimiter=',')
-        X_train = train_dataset[:, feature_start_index:-1]
-        y_train = train_dataset[:, -1]
-        test_dataset = np.loadtxt(test_file_path, delimiter=',')
-        X_test = test_dataset[:, feature_start_index:]
+    def run(self, input_file_path='output.json', output_file_path='predicted.json'):
+        X_train=[]
+        y_train=[]
+        train_indexes=[]
+        with open(input_file_path,'r',encoding='utf-8') as f:
+            data=json.loads(f.read())
+        for frame in data['frames']:
+            if frame['learningData'] and frame['barcode']['isRandom'] and 'random' in frame and 'truthValue' in frame['random']:
+                X_train.extend(frame['learningData'])
+                y_train.extend(frame['random']['truthValue'])
+                train_indexes.append(frame['image']['index'])
         model = RandomForestClassifier()
         model.fit(X_train, y_train)
-        predicted = model.predict(X_test)
-        print('length: ', len(predicted))
-        with open(output_file_path, 'w', encoding='utf-8') as fw:
-            with open(test_file_path, 'r', encoding='utf-8') as fr:
-                for line, value in zip(fr.readlines(), predicted):
-                    fw.write(line.strip() + ',' + str(int(value)) + '\n')
+        print(model.get_params())
+        test_indexes=[]
+        result=[]
+        for frame in data['frames']:
+            if frame['learningData'] and not frame['barcode']['isRandom']:
+                predicted=model.predict(frame['learningData'])
+                predicted=predicted.tolist()
+                result.append({
+                    'index':frame['image']['index'],
+                    'value':predicted
+                })
+                test_indexes.append(frame['image']['index'])
+        data['learning']={}
+        data['learning']['trainIndexes']=train_indexes
+        data['learning']['testIndexes']=test_indexes
+        with open(input_file_path,'w',encoding='utf-8') as f:
+            f.write(json.dumps(data))
+        with open(output_file_path,'w',encoding='utf-8') as f:
+            f.write(json.dumps(result))
 
-    def stat(self, predicted_file_path, truth_file_path):
+    def stat(self, predicted_file_path='predicted.json', truth_file_path='out.json'):
         truth_barcodes = None
         with open(truth_file_path, 'r', encoding='utf-8') as f:
             truth_barcodes = json.loads(f.read())['barcodeValues']
-        predicted_barcodes = {}
+        predicted=None
         with open(predicted_file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = list(map(int, line.strip().split(',')))
-                if line[0] not in predicted_barcodes:
-                    predicted_barcodes[line[0]] = []
-                predicted_barcodes[line[0]].append(line[1:])
-        for index in sorted(predicted_barcodes.keys()):
-            predicted = [item[-1] for item in predicted_barcodes[index]]
-            min_diff_count, truth = find_most_common(predicted, truth_barcodes)
-            print(min_diff_count)
+            predicted=json.loads(f.read())
+        for frame in predicted:
+            min_diff_count, truth = find_most_common(frame['value'], truth_barcodes)
+            print(frame['index'],min_diff_count)
 
 
 if __name__ == '__main__':
-    input_file_path = 'data_with_value.txt'
     learning = Learning()
-    learning.run('data_with_value.txt', 'data_without_value.txt', 3)
-    learning.stat('predicted.txt', 'out.json')
+    learning.run()
+    learning.stat()
