@@ -21,7 +21,7 @@ def find_most_common(input_list, list_of_list):
 
 
 class Learning:
-    def run(self, input_file_path='output.json', output_file_path='predicted.json'):
+    def run(self, input_file_path='output.json', output_file_path='predicted.json',num_max_train_instance=-1):
         X_train=[]
         y_train=[]
         train_indexes=[]
@@ -29,10 +29,11 @@ class Learning:
             data=json.loads(f.read())
         for frame in data['frames']:
             if frame['learningData'] and frame['barcode']['isRandom'] and 'random' in frame and 'truthValue' in frame['random']:
-                X_train.extend(frame['learningData'])
-                y_train.extend(frame['random']['truthValue'])
-                train_indexes.append(frame['image']['index'])
-        model = RandomForestClassifier()
+                if num_max_train_instance==-1 or frame['random']['index']<num_max_train_instance:
+                    X_train.extend(frame['learningData'])
+                    y_train.extend(frame['random']['truthValue'])
+                    train_indexes.append(frame['image']['index'])
+        model = RandomForestClassifier(n_jobs=-1)
         model.fit(X_train, y_train)
         print(model.get_params())
         test_indexes=[]
@@ -68,5 +69,5 @@ class Learning:
 
 if __name__ == '__main__':
     learning = Learning()
-    learning.run()
+    learning.run(num_max_train_instance=-1)
     learning.stat()
