@@ -31,37 +31,37 @@ class Analysis:
         print(metrics.classification_report(expected, predicted))
         print(metrics.confusion_matrix(expected, predicted))
 
-        print('8'*40)
-        print(dataset[:,0],dataset[:,2],predicted,expected)
-        a=list(dataset[:,0])
-        b=list(dataset[:,2])
-        c=list(predicted)
-        d=list(expected)
-        prev=a[0]
-        prev2=b[0]
-        count1=0
-        count2=0
-        memory={}
-        for item1,item2,item3,item4 in zip(a,b,c,d):
-            key=(item3,item4)
+        print('8' * 40)
+        print(dataset[:, 0], dataset[:, 2], predicted, expected)
+        a = list(dataset[:, 0])
+        b = list(dataset[:, 2])
+        c = list(predicted)
+        d = list(expected)
+        prev = a[0]
+        prev2 = b[0]
+        count1 = 0
+        count2 = 0
+        memory = {}
+        for item1, item2, item3, item4 in zip(a, b, c, d):
+            key = (item3, item4)
             if key not in memory:
-                memory[key]=0
-            memory[key]+=1
-            if prev!=item1:
-                print(prev,prev2,count1,count2,count1/count2)
-                prev=item1
-                prev2=item2
-                count1=0
-                count2=0
+                memory[key] = 0
+            memory[key] += 1
+            if prev != item1:
+                print(prev, prev2, count1, count2, count1 / count2)
+                prev = item1
+                prev2 = item2
+                count1 = 0
+                count2 = 0
 
                 print(memory)
-                memory={}
+                memory = {}
             else:
-                if item3!=item4:
-                    count1+=1
-                count2+=1
+                if item3 != item4:
+                    count1 += 1
+                count2 += 1
 
-        #np.savetxt('test.txt',np.array(X[:,0],dataset[:,2],predicted,expected),fmt='%d',delimiter='\t')
+                # np.savetxt('test.txt',np.array(X[:,0],dataset[:,2],predicted,expected),fmt='%d',delimiter='\t')
 
 
 if __name__ == '__main__':

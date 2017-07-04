@@ -12,7 +12,8 @@ class CleanData:
         self.reg = re.compile(r'(.*?)\s\[(.*?)\]\s(.*?)\s(.*?)\s\[(.*?)\]\s\-\s(.*?)$')
         self.points = {}
         self.values = {}
-    def format_log(self,log_file_path,channels=(0,),output_file_path='output.json'):
+
+    def format_log(self, log_file_path, channels=(0,), output_file_path='output.json'):
         log_reg = re.compile(r'(.*?)\s\[(.*?)\]\s(.*?)\s(.*?)\s\[(.*?)\]\s\-\s(.*?)$')
         result = {}
         result['frames'] = []
@@ -27,8 +28,8 @@ class CleanData:
                 elif log_type == 'barcodeConfig':
                     result['barcodeConfig'] = json.loads(log_content)
                 elif log_type == 'processed':
-                    log_content=json.loads(log_content)
-                    log_content['learningData']=self.each_source(log_content,channels)
+                    log_content = json.loads(log_content)
+                    log_content['learningData'] = self.each_source(log_content, channels)
                     result['frames'].append(log_content)
         with open(output_file_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(result))

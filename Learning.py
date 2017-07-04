@@ -21,50 +21,51 @@ def find_most_common(input_list, list_of_list):
 
 
 class Learning:
-    def run(self, input_file_path='output.json', output_file_path='predicted.json',num_max_train_instance=-1):
-        X_train=[]
-        y_train=[]
-        train_indexes=[]
-        with open(input_file_path,'r',encoding='utf-8') as f:
-            data=json.loads(f.read())
+    def run(self, input_file_path='output.json', output_file_path='predicted.json', num_max_train_instance=-1):
+        X_train = []
+        y_train = []
+        train_indexes = []
+        with open(input_file_path, 'r', encoding='utf-8') as f:
+            data = json.loads(f.read())
         for frame in data['frames']:
-            if frame['learningData'] and frame['barcode']['isRandom'] and 'random' in frame and 'truthValue' in frame['random']:
-                if num_max_train_instance==-1 or frame['random']['index']<num_max_train_instance:
+            if frame['learningData'] and frame['barcode']['isRandom'] and 'random' in frame and 'truthValue' in frame[
+                'random']:
+                if num_max_train_instance == -1 or frame['random']['index'] < num_max_train_instance:
                     X_train.extend(frame['learningData'])
                     y_train.extend(frame['random']['truthValue'])
                     train_indexes.append(frame['image']['index'])
         model = RandomForestClassifier(n_jobs=-1)
         model.fit(X_train, y_train)
         print(model.get_params())
-        test_indexes=[]
-        result=[]
+        test_indexes = []
+        result = []
         for frame in data['frames']:
             if frame['learningData'] and not frame['barcode']['isRandom']:
-                predicted=model.predict(frame['learningData'])
-                predicted=predicted.tolist()
+                predicted = model.predict(frame['learningData'])
+                predicted = predicted.tolist()
                 result.append({
-                    'index':frame['image']['index'],
-                    'value':predicted
+                    'index': frame['image']['index'],
+                    'value': predicted
                 })
                 test_indexes.append(frame['image']['index'])
-        data['learning']={}
-        data['learning']['trainIndexes']=train_indexes
-        data['learning']['testIndexes']=test_indexes
-        with open(input_file_path,'w',encoding='utf-8') as f:
+        data['learning'] = {}
+        data['learning']['trainIndexes'] = train_indexes
+        data['learning']['testIndexes'] = test_indexes
+        with open(input_file_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(data))
-        with open(output_file_path,'w',encoding='utf-8') as f:
+        with open(output_file_path, 'w', encoding='utf-8') as f:
             f.write(json.dumps(result))
 
     def stat(self, predicted_file_path='predicted.json', truth_file_path='out.json'):
         truth_barcodes = None
         with open(truth_file_path, 'r', encoding='utf-8') as f:
             truth_barcodes = json.loads(f.read())['barcodeValues']
-        predicted=None
+        predicted = None
         with open(predicted_file_path, 'r', encoding='utf-8') as f:
-            predicted=json.loads(f.read())
+            predicted = json.loads(f.read())
         for frame in predicted:
             min_diff_count, truth = find_most_common(frame['value'], truth_barcodes)
-            print(frame['index'],min_diff_count)
+            print(frame['index'], min_diff_count)
 
 
 if __name__ == '__main__':
