@@ -59,17 +59,14 @@ class CleanData:
         return bar_1, bar_2
 
     def process_varybar_single(self, data):
-        keys = data['mKeys']
-        size = data['mSize']
-        values = data['mValues']
         varybar = {}
-        for i in range(size):
-            varybar[keys[i]] = values[i]
+        for key, value in data['map'].items():
+            varybar[int(key)] = value
         return varybar
 
 
 if __name__ == '__main__':
-    log_file_path = '2017-06-26 19-57-25.txt'
+    log_file_path = '/Volumes/扩展存储/MegaLight附加实验/拍摄到视频/小米mix2/100/VID_20180913_160548/Screen-Camera/2018-10-23-23-24-01.log'
     barcode = CleanData()
     # Black White Barcode
     barcode.format_log(log_file_path, (0,))
