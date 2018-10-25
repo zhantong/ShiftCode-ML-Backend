@@ -1,4 +1,5 @@
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neural_network import MLPClassifier
 import json
 
 
@@ -34,7 +35,8 @@ class Learning:
                     X_train.extend(frame['learningData'])
                     y_train.extend(frame['random']['truthValue'])
                     train_indexes.append(frame['image']['index'])
-        model = RandomForestClassifier(n_jobs=-1)
+        # model = RandomForestClassifier(n_jobs=-1)
+        model = MLPClassifier()
         model.fit(X_train, y_train)
         print(model.get_params())
         test_indexes = []
